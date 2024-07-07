@@ -4,6 +4,16 @@
 
 ---
 
+## Getting started
+
+```
+cd iac/projects/dev
+terraform init
+terraform apply
+```
+
+---
+
 ## Related Resources
 
 - [Creating a Step Functions state machine that uses Lambda](https://docs.aws.amazon.com/step-functions/latest/dg/tutorial-creating-lambda-state-machine.html)
