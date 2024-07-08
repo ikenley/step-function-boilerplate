@@ -2,116 +2,98 @@
 # Function which sends the mamnual approval email
 #-------------------------------------------------------------------------------
 
-# resource "aws_lambda_function" "lambda_human_approval_send_email_function" {
-#   handler = "index.lambda_handler"
-#   role = aws_iam_role.lambda_send_email_execution_role.arn
-#   runtime = "nodejs18.x"
-#   timeout = "25"
-#   code_signing_config_arn = {
-#     ZipFile = "console.log('Loading function');
-# const { SNS } = require("@aws-sdk/client-sns");
-# exports.lambda_handler = (event, context, callback) => {
-#     console.log('event= ' + JSON.stringify(event));
-#     console.log('context= ' + JSON.stringify(context));
+locals {
+  send_lambda_id = "${local.id}-send"
+}
 
-#     const executionContext = event.ExecutionContext;
-#     console.log('executionContext= ' + executionContext);
+module "send_lambda" {
+  source = "terraform-aws-modules/lambda/aws"
 
-#     const executionName = executionContext.Execution.Name;
-#     console.log('executionName= ' + executionName);
+  function_name = local.send_lambda_id
+  description   = "${local.id} send manual approve message"
+  handler       = "lambda_function.handler"
+  runtime       = "nodejs20.x"
+  publish       = true
+  timeout       = 30 # seconds
 
-#     const statemachineName = executionContext.StateMachine.Name;
-#     console.log('statemachineName= ' + statemachineName);
+  source_path = "${path.module}/lambda/send-lambda/src"
 
-#     const taskToken = executionContext.Task.Token;
-#     console.log('taskToken= ' + taskToken);
+  policy = aws_iam_policy.send_lambda.arn
 
-#     const apigwEndpint = event.APIGatewayEndpoint;
-#     console.log('apigwEndpint = ' + apigwEndpint)
+  #vpc_subnet_ids         = var.private_subnets # var.public_subnets #
+  #vpc_security_group_ids = [aws_security_group.revisit_prediction.id]
+  #attach_network_policy  = true
 
-#     const approveEndpoint = apigwEndpint + "/execution?action=approve&ex=" + executionName + "&sm=" + statemachineName + "&taskToken=" + encodeURIComponent(taskToken);
-#     console.log('approveEndpoint= ' + approveEndpoint);
+  environment_variables = {
+    Serverless = "Terraform"
+    #SES_EMAIL_ADDRESS        = var.ses_email_address
+  }
 
-#     const rejectEndpoint = apigwEndpint + "/execution?action=reject&ex=" + executionName + "&sm=" + statemachineName + "&taskToken=" + encodeURIComponent(taskToken);
-#     console.log('rejectEndpoint= ' + rejectEndpoint);
+  tags = local.tags
+}
 
-#     const emailSnsTopic = "${aws_sns_topic.sns_human_approval_email_topic.id}";
-#     console.log('emailSnsTopic= ' + emailSnsTopic);
+# resource "aws_iam_role" "send_lambda" {
+#   name = local.send_lambda_id
 
-#     var emailMessage = 'Welcome! \n\n';
-#     emailMessage += 'This is an email requiring an approval for a step functions execution. \n\n'
-#     emailMessage += 'Please check the following information and click "Approve" link if you want to approve. \n\n'
-#     emailMessage += 'Execution Name -> ' + executionName + '\n\n'
-#     emailMessage += 'Approve ' + approveEndpoint + '\n\n'
-#     emailMessage += 'Reject ' + rejectEndpoint + '\n\n'
-#     emailMessage += 'Thanks for using Step functions!'
-    
-#     const sns = new SNS();
-#     var params = {
-#       Message: emailMessage,
-#       Subject: "Required approval from AWS Step Functions",
-#       TopicArn: emailSnsTopic
-#     };
+#   # Terraform's "jsonencode" function converts a
+#   # Terraform expression result to valid JSON syntax.
+#   assume_role_policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [
+#       {
+#         Action = "sts:AssumeRole"
+#         Effect = "Allow"
+#         Sid    = ""
+#         Principal = {
+#           Service = "states.amazonaws.com"
+#         }
+#       },
+#     ]
+#   })
 
-#     sns.publish(params)
-#       .then(function(data) {
-#         console.log("MessageID is " + data.MessageId);
-#         callback(null);
-#       }).catch(
-#         function(err) {
-#         console.error(err, err.stack);
-#         callback(err);
-#       });
-# }
-# "
-#   }
+#   tags = local.tags
 # }
 
-resource "aws_iam_role" "lambda_send_email_execution_role" {
-  assume_role_policy = {
-    Version = "2012-10-17"
-    Statement = [
+# resource "aws_iam_role_policy_attachment" "send_lambda" {
+#   role       = aws_iam_role.sfn.name
+#   policy_arn = aws_iam_policy.sfn.arn
+# }
+
+resource "aws_iam_policy" "send_lambda" {
+  name        = local.send_lambda_id
+  path        = "/"
+  description = "Main policy for ${local.send_lambda_id}"
+
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
       {
-        Effect = "Allow"
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        }
-        Action = "sts:AssumeRole"
+        "Sid": "Logging",
+        "Action" : [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        "Resource" : "arn:aws:logs:*:*:*",
+        "Effect" : "Allow"
+      },
+      {
+        "Sid": "Sns"
+        "Action" : [
+          "SNS:Publish"
+        ],
+        "Resource" : [
+          aws_sns_topic.sns_human_approval_email_topic.arn
+        ],
+        "Effect" : "Allow"
       }
     ]
-  }
-  force_detach_policies = [
-    {
-      PolicyName = "CloudWatchLogsPolicy"
-      PolicyDocument = {
-        Statement = [
-          {
-            Effect = "Allow"
-            Action = [
-              "logs:CreateLogGroup",
-              "logs:CreateLogStream",
-              "logs:PutLogEvents"
-            ]
-            Resource = "arn:${data.aws_partition.current.partition}:logs:*:*:*"
-          }
-        ]
-      }
-    },
-    {
-      PolicyName = "SNSSendEmailPolicy"
-      PolicyDocument = {
-        Statement = [
-          {
-            Effect = "Allow"
-            Action = [
-              "SNS:Publish"
-            ]
-            Resource = [
-              "${aws_sns_topic.sns_human_approval_email_topic.id}"
-            ]
-          }
-        ]
-      }
-    }
-  ]
+  })
+}
+
+
+resource "aws_sns_topic" "sns_human_approval_email_topic" {
+  name = local.id
 }

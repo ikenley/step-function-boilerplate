@@ -11,8 +11,8 @@ data "aws_region" "current" {}
 locals {
   account_id = data.aws_caller_identity.current.account_id
 
-  id            = "${var.namespace}-${var.env}-step-demo"
-  output_prefix = "/${var.namespace}/${var.env}/step-demo"
+  id            = "${var.namespace}-${var.env}-manual-approve"
+  output_prefix = "/${var.namespace}/${var.env}/manual-approve"
 
   tags = merge(var.tags, {
     Terraform   = true

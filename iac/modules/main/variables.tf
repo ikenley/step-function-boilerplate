@@ -25,6 +25,6 @@ variable "is_prod" {
 # variable "codestar_connection_arn" {}
 
 # SES
-# variable "ses_email_address" {}
+variable "ses_email_address" {}
 # variable "ses_email_arn" {}
 
