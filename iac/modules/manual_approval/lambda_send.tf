@@ -32,40 +32,11 @@ module "send_lambda" {
   tags = local.tags
 }
 
-# resource "aws_iam_role" "send_lambda" {
-#   name = local.send_lambda_id
-
-#   # Terraform's "jsonencode" function converts a
-#   # Terraform expression result to valid JSON syntax.
-#   assume_role_policy = jsonencode({
-#     Version = "2012-10-17"
-#     Statement = [
-#       {
-#         Action = "sts:AssumeRole"
-#         Effect = "Allow"
-#         Sid    = ""
-#         Principal = {
-#           Service = "states.amazonaws.com"
-#         }
-#       },
-#     ]
-#   })
-
-#   tags = local.tags
-# }
-
-# resource "aws_iam_role_policy_attachment" "send_lambda" {
-#   role       = aws_iam_role.sfn.name
-#   policy_arn = aws_iam_policy.sfn.arn
-# }
-
 resource "aws_iam_policy" "send_lambda" {
   name        = local.send_lambda_id
   path        = "/"
   description = "Main policy for ${local.send_lambda_id}"
 
-  # Terraform's "jsonencode" function converts a
-  # Terraform expression result to valid JSON syntax.
   policy = jsonencode({
     "Version" : "2012-10-17",
     "Statement" : [
@@ -96,4 +67,6 @@ resource "aws_iam_policy" "send_lambda" {
 
 resource "aws_sns_topic" "sns_human_approval_email_topic" {
   name = local.id
+
+  kms_master_key_id = "alias/aws/sns"
 }
