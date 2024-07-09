@@ -1,4 +1,4 @@
-const { SFN: StepFunctions } = require("@aws-sdk/client-sfn");
+import { SFN as StepFunctions } from "@aws-sdk/client-sfn";
 
 var redirectToStepFunctions = function (
   lambdaArn,
@@ -41,7 +41,7 @@ var redirectToStepFunctions = function (
   });
 };
 
-exports.handler = (event, context, callback) => {
+export const handler = (event, context, callback) => {
   console.log("Event= " + JSON.stringify(event));
   const action = event.query.action;
   const taskToken = event.query.taskToken;
@@ -79,3 +79,5 @@ exports.handler = (event, context, callback) => {
       callback(err);
     });
 };
+
+export default handler;
