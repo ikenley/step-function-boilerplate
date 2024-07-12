@@ -18,8 +18,6 @@ module "send_lambda" {
 
   source_path = "${path.module}/lambda/send-lambda/src"
 
-  policy = aws_iam_policy.send_lambda.arn
-
   #vpc_subnet_ids         = var.private_subnets # var.public_subnets #
   #vpc_security_group_ids = [aws_security_group.revisit_prediction.id]
   #attach_network_policy  = true
@@ -32,7 +30,12 @@ module "send_lambda" {
   tags = local.tags
 }
 
-resource "aws_iam_policy" "send_lambda" {
+resource "aws_iam_role_policy_attachment" "send_lambda_main" {
+  role       = module.send_lambda.lambda_role_name
+  policy_arn = aws_iam_policy.send_lambda_main.arn
+}
+
+resource "aws_iam_policy" "send_lambda_main" {
   name        = local.send_lambda_id
   path        = "/"
   description = "Main policy for ${local.send_lambda_id}"
@@ -41,7 +44,7 @@ resource "aws_iam_policy" "send_lambda" {
     "Version" : "2012-10-17",
     "Statement" : [
       {
-        "Sid": "Logging",
+        "Sid" : "Logging",
         "Action" : [
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
@@ -51,7 +54,7 @@ resource "aws_iam_policy" "send_lambda" {
         "Effect" : "Allow"
       },
       {
-        "Sid": "Sns"
+        "Sid" : "Sns"
         "Action" : [
           "SNS:Publish"
         ],
@@ -69,4 +72,13 @@ resource "aws_sns_topic" "sns_human_approval_email_topic" {
   name = local.id
 
   kms_master_key_id = "alias/aws/sns"
+}
+
+# TODO make this a for each
+resource "aws_sns_topic_subscription" "sns_human_approval_email_topic" {
+  for_each = var.ses_email_addresses
+
+  topic_arn = aws_sns_topic.sns_human_approval_email_topic.arn
+  protocol  = "email"
+  endpoint  = each.key
 }

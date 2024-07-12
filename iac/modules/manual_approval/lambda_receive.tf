@@ -18,8 +18,6 @@ module "receive_lambda" {
 
   source_path = "${path.module}/lambda/receive-lambda/src"
 
-  policy = aws_iam_policy.receive_lambda.arn
-
   environment_variables = {
     Serverless = "Terraform"
   }
@@ -27,8 +25,13 @@ module "receive_lambda" {
   tags = local.tags
 }
 
-resource "aws_iam_policy" "receive_lambda" {
-  name        = local.receive_lambda_id
+resource "aws_iam_role_policy_attachment" "receive_lambda_main" {
+  role       = module.receive_lambda.lambda_role_name
+  policy_arn = aws_iam_policy.receive_lambda_main.arn
+}
+
+resource "aws_iam_policy" "receive_lambda_main" {
+  name        = "${local.receive_lambda_id}-main"
   path        = "/"
   description = "Main policy for ${local.receive_lambda_id}"
 

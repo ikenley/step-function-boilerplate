@@ -14,7 +14,7 @@ module "manual_approval" {
   env          = var.env
   is_prod      = var.is_prod
 
-  email = var.ses_email_address
+  ses_email_addresses = var.ses_email_addresses
 
 }
 
@@ -34,7 +34,8 @@ resource "aws_sfn_state_machine" "manual_approval_sfn" {
         "FunctionName": "${module.manual_approval.send_lambda_function_arn}",
         "Payload": {
           "ExecutionContext.$": "$$",
-          "APIGatewayEndpoint": "${module.manual_approval.api_gateway_invoke_url}"
+          "APIGatewayEndpoint": "${module.manual_approval.api_gateway_invoke_url}",
+          "EmailSnsTopic": "${module.manual_approval.sns_email_topic_arn}"
         }
       },
       "Next": "manual_approve_choice_state"

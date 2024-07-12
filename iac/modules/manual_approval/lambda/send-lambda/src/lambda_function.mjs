@@ -40,7 +40,7 @@ export const handler = (event, context, callback) => {
     encodeURIComponent(taskToken);
   console.log("rejectEndpoint= " + rejectEndpoint);
 
-  const emailSnsTopic = "${aws_sns_topic.sns_human_approval_email_topic.id}";
+  const emailSnsTopic = event.EmailSnsTopic;
   console.log("emailSnsTopic= " + emailSnsTopic);
 
   var emailMessage = "Welcome! \n\n";

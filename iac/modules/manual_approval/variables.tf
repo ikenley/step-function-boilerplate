@@ -17,6 +17,6 @@ variable "is_prod" {
   type        = bool
 }
 
-variable email {
-  type = string
+variable "ses_email_addresses" {
+  type = set(string)
 }

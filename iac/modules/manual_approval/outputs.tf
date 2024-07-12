@@ -31,3 +31,24 @@ resource "aws_ssm_parameter" "receive_lambda_function_arn" {
 output "receive_lambda_function_arn" {
   value = module.receive_lambda.lambda_function_arn
 }
+
+resource "aws_ssm_parameter" "sns_email_topic_arn" {
+  name  = "${local.output_prefix}/sns_email_topic_arn"
+  type  = "String"
+  value = aws_sns_topic.sns_human_approval_email_topic.arn
+}
+
+output "sns_email_topic_arn" {
+  value = aws_sns_topic.sns_human_approval_email_topic.arn
+}
+
+resource "aws_ssm_parameter" "sns_email_topic_id" {
+  name  = "${local.output_prefix}/sns_email_topic_id"
+  type  = "String"
+  value = aws_sns_topic.sns_human_approval_email_topic.id
+}
+
+output "sns_email_topic_id" {
+  value = aws_sns_topic.sns_human_approval_email_topic.id
+}
+

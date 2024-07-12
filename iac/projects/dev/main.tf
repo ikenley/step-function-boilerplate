@@ -30,6 +30,6 @@ module "main" {
   env          = "dev"
   is_prod      = false
 
-  ses_email_address = var.ses_email_address
+  ses_email_addresses = toset([var.ses_email_address])
 
 }
