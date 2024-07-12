@@ -43,19 +43,19 @@ var redirectToStepFunctions = function (
 
 export const handler = (event, context, callback) => {
   console.log("Event= " + JSON.stringify(event));
-  const action = event.query.action;
-  const taskToken = event.query.taskToken;
-  const statemachineName = event.query.sm;
-  const executionName = event.query.ex;
+  const action = event.queryStringParameters.action;
+  const taskToken = event.queryStringParameters.taskToken;
+  const statemachineName = event.queryStringParameters.sm;
+  const executionName = event.queryStringParameters.ex;
 
   const stepfunctions = new StepFunctions();
 
   var message = "";
 
   if (action === "approve") {
-    message = { Status: "Approved! Task approved by ${var.email}" };
+    message = { action, message: "Approved! Task approved by ${var.email}" };
   } else if (action === "reject") {
-    message = { Status: "Rejected! Task rejected by ${var.email}" };
+    message = { action, message: "Rejected! Task rejected by ${var.email}" };
   } else {
     console.error("Unrecognized action. Expected: approve, reject.");
     callback({ Status: "Failed to process the request. Unrecognized Action." });
@@ -64,7 +64,7 @@ export const handler = (event, context, callback) => {
   stepfunctions
     .sendTaskSuccess({
       output: JSON.stringify(message),
-      taskToken: event.query.taskToken,
+      taskToken,
     })
     .then(function (data) {
       redirectToStepFunctions(

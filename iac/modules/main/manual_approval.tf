@@ -44,13 +44,13 @@ resource "aws_sfn_state_machine" "manual_approval_sfn" {
       "Type": "Choice",
       "Choices": [
         {
-          "Variable": "$.Status",
-          "StringEquals": "Approved! Task approved.",
+          "Variable": "$.action",
+          "StringEquals": "approve",
           "Next": "approved_pass_state"
         },
         {
-          "Variable": "$.Status",
-          "StringEquals": "Rejected! Task rejected.",
+          "Variable": "$.action",
+          "StringEquals": "reject",
           "Next": "rejected_pass_state"
         }
       ]
