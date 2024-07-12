@@ -6,7 +6,7 @@ locals {
   receive_lambda_id = "${local.id}-receive"
 }
 
-module "lambda_receive" {
+module "receive_lambda" {
   source = "terraform-aws-modules/lambda/aws"
 
   function_name = local.receive_lambda_id

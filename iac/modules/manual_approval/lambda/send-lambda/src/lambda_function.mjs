@@ -1,7 +1,7 @@
 console.log("Loading function");
-const { SNS } = require("@aws-sdk/client-sns");
+import { SNS } from "@aws-sdk/client-sns";
 
-exports.lambda_handler = (event, context, callback) => {
+export const handler = (event, context, callback) => {
   console.log("event= " + JSON.stringify(event));
   console.log("context= " + JSON.stringify(context));
 
@@ -71,3 +71,5 @@ exports.lambda_handler = (event, context, callback) => {
       callback(err);
     });
 };
+
+export default handler;

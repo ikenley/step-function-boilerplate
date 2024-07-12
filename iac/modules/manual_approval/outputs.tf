@@ -12,8 +12,22 @@ output "api_gateway_invoke_url" {
   value = "https://${aws_api_gateway_rest_api.api_gateway.id}.execute-api.${data.aws_region.current.name}.amazonaws.com/${aws_api_gateway_stage.api_gateway.stage_name}"
 }
 
-# resource "aws_ssm_parameter" "state_machine_human_approval_arn" {
-#   name  = "${local.output_prefix}/state_machine_human_approval_arn"
-#   type  = "String"
-#   value = aws_sfn_state_machine.human_approval_lambda_state_machine.id
-# }
+resource "aws_ssm_parameter" "send_lambda_function_arn" {
+  name  = "${local.output_prefix}/send_lambda_function_arn"
+  type  = "String"
+  value = module.send_lambda.lambda_function_arn
+}
+
+output "send_lambda_function_arn" {
+  value = module.send_lambda.lambda_function_arn
+}
+
+resource "aws_ssm_parameter" "receive_lambda_function_arn" {
+  name  = "${local.output_prefix}/receive_lambda_function_arn"
+  type  = "String"
+  value = module.receive_lambda.lambda_function_arn
+}
+
+output "receive_lambda_function_arn" {
+  value = module.receive_lambda.lambda_function_arn
+}

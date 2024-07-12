@@ -77,7 +77,7 @@ resource "aws_api_gateway_integration" "api_gateway" {
   rest_api_id = aws_api_gateway_rest_api.api_gateway.id
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
-  uri                     = module.lambda_receive.lambda_function_invoke_arn
+  uri                     = module.receive_lambda.lambda_function_invoke_arn
 }
 
 resource "aws_api_gateway_account" "api_gateway" {
@@ -175,7 +175,7 @@ resource "aws_api_gateway_deployment" "api_gateway" {
 
 resource "aws_lambda_permission" "lambda_api_gateway_invoke" {
   action        = "lambda:InvokeFunction"
-  function_name = module.lambda_receive.lambda_function_arn
+  function_name = module.receive_lambda.lambda_function_arn
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.api_gateway.execution_arn}/*"
 }
