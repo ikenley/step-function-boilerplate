@@ -143,6 +143,23 @@ resource "aws_api_gateway_stage" "api_gateway" {
   stage_name  = "manual-approve"
 }
 
+resource "aws_api_gateway_method_settings" "api_gateway" {
+  rest_api_id = "${aws_api_gateway_rest_api.api_gateway.id}"
+  stage_name  = "${aws_api_gateway_stage.api_gateway.stage_name}"
+  method_path = "*/*"
+  settings {
+    logging_level = "INFO"
+    data_trace_enabled = true
+    metrics_enabled = true
+  }
+}
+
+resource "aws_cloudwatch_log_group" "api_gateway" {
+  name              = "api_gateway_execution/${aws_api_gateway_rest_api.api_gateway.id}/${aws_api_gateway_stage.api_gateway.stage_name}"
+  retention_in_days = 7
+  # ... potentially other configuration ...
+}
+
 resource "aws_api_gateway_deployment" "api_gateway" {
   rest_api_id = aws_api_gateway_rest_api.api_gateway.id
   stage_name  = "DummyStage"
