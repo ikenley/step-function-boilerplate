@@ -17,16 +17,6 @@ variable "is_prod" {
   type        = bool
 }
 
-# CodePipeline
-
-# variable "code_pipeline_s3_bucket_name" {}
-# variable "source_full_repository_id" {}
-# variable "source_branch_name" {}
-# variable "codestar_connection_arn" {}
-
-# SES
 variable "ses_email_addresses" {
   type = set(string)
 }
-# variable "ses_email_arn" {}
-

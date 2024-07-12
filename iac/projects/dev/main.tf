@@ -30,7 +30,6 @@ module "main" {
   env          = "dev"
   is_prod      = false
 
-  # git_repo   = "ikenley/ai-app"
-  # git_branch = "image" #"main"
+  ses_email_addresses = toset([var.ses_email_address])
 
 }
