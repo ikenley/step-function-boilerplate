@@ -51,7 +51,8 @@ export default class ImageGeneratorService {
 
   async uploadToS3(imageId, filePath) {
     const fileContent = readFileSync(filePath); // This is inefficient, but works for small images
-    const s3Key = `${this.config.s3.keyPrefix}/${imageId}.png`;
+    const datePrefix = this.getS3DatePrefix();
+    const s3Key = `${this.config.s3.keyPrefix}/${datePrefix}/${imageId}.png`;
     const input = {
       Body: fileContent,
       Bucket: this.config.s3.bucketName,
@@ -62,5 +63,12 @@ export default class ImageGeneratorService {
     await this.s3Client.send(command);
 
     return s3Key;
+  }
+
+  /** Gets an S3 date prefix in the form "YYYY-MM-DD" */
+  getS3DatePrefix() {
+    const isoDate = new Date().toISOString();
+    const parts = isoDate.split("T");
+    return parts[0];
   }
 }
