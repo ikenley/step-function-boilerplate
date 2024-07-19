@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Lambda Function and ECS Task which handle ai image generation.
+# Lambda Function which handle ai image generation.
 #-------------------------------------------------------------------------------
 
 locals {

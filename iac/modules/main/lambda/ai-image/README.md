@@ -40,6 +40,6 @@ curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d
 # Deploy
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 924586450630.dkr.ecr.us-east-1.amazonaws.com
 aws ecr create-repository --repository-name ik-dev-step-demo-ai-image-task --image-scanning-configuration scanOnPush=true --image-tag-mutability MUTABLE
-docker tag ik-dev-step-demo-ai-image-task:test 924586450630.dkr.ecr.us-east-1.amazonaws.com/ik-dev-step-demo-ai-image-task:latest
-docker push 924586450630.dkr.ecr.us-east-1.amazonaws.com/ik-dev-step-demo-ai-image-task
+docker tag ik-dev-step-demo-ai-image-task:latest 924586450630.dkr.ecr.us-east-1.amazonaws.com/ik-dev-step-demo-ai-image-task:latest
+docker push 924586450630.dkr.ecr.us-east-1.amazonaws.com/ik-dev-step-demo-ai-image-task:latest
 ```
