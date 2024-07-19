@@ -19,7 +19,7 @@ resource "aws_ecs_task_definition" "ai_image_task" {
   container_definitions = jsonencode([
     {
       name      = "ai-image"
-      image     = "${aws_ecr_repository.ai_image_task.repository_url}:1"
+      image     = "${aws_ecr_repository.ai_image_task.repository_url}:2"
       cpu       = 1
       memory    = 512
       essential = true

@@ -7,7 +7,7 @@ import ImageGeneratorService from "./ai/ImageGeneratorService.mjs";
 
 const main = async () => {
   const args = getArguments();
-  console.log("args", args);
+  console.log("args", JSON.stringify(args));
   const imageId = args.id;
   const prompt = args.prompt;
 

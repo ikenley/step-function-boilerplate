@@ -30,7 +30,7 @@ export default class ImageGeneratorService {
       modelId: "stability.stable-diffusion-xl-v1",
     };
     const command = new InvokeModelCommand(input);
-    console.log("createImage", { imageId, prompt });
+    console.log("createImage", JSON.stringify({ imageId, prompt }));
     const response = await this.bedrockRuntimeClient.send(command);
 
     const blobAdapter = response.body;
@@ -44,7 +44,7 @@ export default class ImageGeneratorService {
       await writeFile(filePath, base64Data, { encoding: "base64" });
       return filePath;
     } catch (error) {
-      console.error("Error parsing JSON:", error);
+      console.error("Error parsing JSON:", JSON.stringify(error));
       throw new Error(error);
     }
   }
@@ -58,7 +58,10 @@ export default class ImageGeneratorService {
       Bucket: this.config.s3.bucketName,
       Key: s3Key,
     };
-    console.log("uploadToS3", { bucket: input.Bucket, s3Key: input.Key });
+    console.log(
+      "uploadToS3",
+      JSON.stringify({ bucket: input.Bucket, s3Key: input.Key })
+    );
     const command = new PutObjectCommand(input);
     await this.s3Client.send(command);
 
