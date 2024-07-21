@@ -2,6 +2,11 @@ import { randomUUID } from "crypto";
 import { parseArgs } from "node:util";
 import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
 import { S3Client } from "@aws-sdk/client-s3";
+import {
+  SendTaskSuccessCommand,
+  SendTaskFailureCommand,
+  SFNClient,
+} from "@aws-sdk/client-sfn";
 import { getConfigOptions } from "./config/ConfigOptions.mjs";
 import ImageGeneratorService from "./ai/ImageGeneratorService.mjs";
 
@@ -9,13 +14,13 @@ const main = async () => {
   const args = getArguments();
   console.log("args", JSON.stringify(args));
   const imageId = args.id;
-  const prompt = args.prompt;
+  const { prompt, taskToken } = args;
 
   const config = getConfigOptions();
 
   const bedrockClient = new BedrockRuntimeClient();
-
   const s3Client = new S3Client();
+  const stepFnClient = new SFNClient();
 
   const imageGeneratorService = new ImageGeneratorService(
     config,
@@ -23,7 +28,28 @@ const main = async () => {
     s3Client
   );
 
-  await imageGeneratorService.generate(imageId, prompt);
+  let output = null;
+  try {
+    output = await imageGeneratorService.generate(imageId, prompt);
+  } catch (e) {
+    const failureCommand = new SendTaskFailureCommand({
+      taskToken,
+      error: "500",
+      cause: JSON.stringify(e),
+    });
+    await this.stepFnClient.command(failureCommand);
+    console.error("Error during image generation", e);
+    throw new Error("Error during image generation", e);
+  }
+  console.log("output", JSON.stringify(output));
+
+  const stepFnCommand = new SendTaskSuccessCommand({
+    taskToken,
+    output: JSON.stringify(output),
+  });
+  await stepFnClient.send(stepFnCommand);
+
+  return result;
 };
 
 /** Parse CLI arguments.
@@ -40,6 +66,7 @@ const getArguments = () => {
       type: "string",
       short: "p",
     },
+    "task-token": { type: "string", short: "t" },
   };
 
   const { values, positionals } = parseArgs({
@@ -55,6 +82,11 @@ const getArguments = () => {
   if (!values.prompt) {
     throw new Error("--prompt argument is required.");
   }
+  if (!values["task-token"]) {
+    throw new Error("--task-token argument is required.");
+  }
+
+  values.taskToken = values["task-token"];
 
   return { command: positionals[0], ...values };
 };

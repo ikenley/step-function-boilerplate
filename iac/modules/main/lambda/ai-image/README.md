@@ -22,7 +22,7 @@ A "real" application would presumably have tests, TypeScript, 3rd party dependen
 ```
 cd iac/modules/main/lambda/ai-image
 npm i
-npm run start -- generate-image --id 12345 --prompt "A man sitting on a bench in front of a lake"
+npm run start -- generate-image --id 12345 --task-token "1234567" --prompt "A man sitting on a bench in front of a lake"
 ```
 
 ## Docker
