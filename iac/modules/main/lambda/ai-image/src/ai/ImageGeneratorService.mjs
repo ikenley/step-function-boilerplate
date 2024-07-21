@@ -15,9 +15,9 @@ export default class ImageGeneratorService {
   async generate(imageId, prompt) {
     const filePath = await this.createImage(imageId, prompt);
 
-    const s3Key = await this.uploadToS3(imageId, filePath);
+    const s3Result = await this.uploadToS3(imageId, filePath);
 
-    return { s3Key };
+    return s3Result;
   }
 
   /** Generate an image based on a prompt */
@@ -52,10 +52,11 @@ export default class ImageGeneratorService {
   async uploadToS3(imageId, filePath) {
     const fileContent = readFileSync(filePath); // This is inefficient, but works for small images
     const datePrefix = this.getS3DatePrefix();
+    const s3Bucket = this.config.s3.bucketName;
     const s3Key = `${this.config.s3.keyPrefix}/${datePrefix}/${imageId}.png`;
     const input = {
       Body: fileContent,
-      Bucket: this.config.s3.bucketName,
+      Bucket: s3Bucket,
       Key: s3Key,
     };
     console.log(
@@ -65,7 +66,8 @@ export default class ImageGeneratorService {
     const command = new PutObjectCommand(input);
     await this.s3Client.send(command);
 
-    return s3Key;
+    const s3Uri = `s3://${s3Bucket}/${s3Key}`;
+    return { s3Bucket, s3Key, s3Uri };
   }
 
   /** Gets an S3 date prefix in the form "YYYY-MM-DD" */
