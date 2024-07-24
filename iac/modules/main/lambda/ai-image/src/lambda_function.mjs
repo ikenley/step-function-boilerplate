@@ -19,7 +19,8 @@ export const handler = async (event, context, callback) => {
     const tagService = new TagService(
       rekognitionClient,
       s3Client,
-      config.s3.bucketName
+      config.s3.bucketName,
+      config.s3.keyPrefix
     );
 
     result = await tagService.createTagFile(

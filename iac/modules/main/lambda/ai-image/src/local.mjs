@@ -1,7 +1,10 @@
-import { RekognitionClient } from "@aws-sdk/client-rekognition";
-import { S3Client } from "@aws-sdk/client-s3";
+import dotenv from "dotenv";
 import { getConfigOptions } from "./config/ConfigOptions.mjs";
 import handler from "./lambda_function.mjs";
+
+// Set the NODE_ENV to 'development' by default
+process.env.NODE_ENV = process.env.NODE_ENV || "development";
+dotenv.config({ path: ".env" });
 
 /** Simulate local lambda handler event for local testing */
 const main = async () => {

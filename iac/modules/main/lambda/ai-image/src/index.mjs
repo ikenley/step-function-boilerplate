@@ -1,3 +1,4 @@
+import dotenv from "dotenv";
 import { randomUUID } from "crypto";
 import { parseArgs } from "node:util";
 import { BedrockRuntimeClient } from "@aws-sdk/client-bedrock-runtime";
@@ -9,6 +10,10 @@ import {
 } from "@aws-sdk/client-sfn";
 import { getConfigOptions } from "./config/ConfigOptions.mjs";
 import ImageGeneratorService from "./ai/ImageGeneratorService.mjs";
+
+// Set the NODE_ENV to 'development' by default
+process.env.NODE_ENV = process.env.NODE_ENV || "development";
+dotenv.config({ path: ".env" });
 
 const main = async () => {
   const args = getArguments();

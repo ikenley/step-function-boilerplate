@@ -1,11 +1,13 @@
 import { DetectLabelsCommand } from "@aws-sdk/client-rekognition";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { getS3DatePrefix } from "./s3Util.mjs";
 
 /** Service which creates ML-based tags for an image, and then saves the results to S3 */
 export default class TagService {
   constructor(rekognitionClient, s3Client, s3BucketName, s3BucketPrefix) {
     this.rekognitionClient = rekognitionClient;
     this.s3Client = s3Client;
+    this.s3BucketPrefix = s3BucketPrefix;
     this.s3BucketName = s3BucketName;
   }
 
@@ -56,10 +58,10 @@ export default class TagService {
     return labelNames;
   }
 
-  async writeTagsToS3(imageId, imageS3Key, tags) {
-    // TODO get target S3 key from imageS3Key using regex
+  async writeTagsToS3(imageId, tags) {
+    const datePrefix = getS3DatePrefix();
+    const s3Key = `${this.s3BucketPrefix}/${datePrefix}/${imageId}-tags.json`;
 
-    const s3Key = `${this.s3BucketPrefix}/${imageId}-tags.json`;
     const params = {
       Bucket: this.s3BucketName,
       Key: s3Key,

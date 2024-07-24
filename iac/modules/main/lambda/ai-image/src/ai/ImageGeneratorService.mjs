@@ -3,6 +3,7 @@ import { writeFile } from "fs/promises";
 import * as path from "path";
 import { InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { getS3DatePrefix } from "./s3Util.mjs";
 
 export default class ImageGeneratorService {
   constructor(config, bedrockRuntimeClient, s3Client) {
@@ -51,7 +52,7 @@ export default class ImageGeneratorService {
 
   async uploadToS3(imageId, filePath) {
     const fileContent = readFileSync(filePath); // This is inefficient, but works for small images
-    const datePrefix = this.getS3DatePrefix();
+    const datePrefix = getS3DatePrefix();
     const s3Bucket = this.config.s3.bucketName;
     const s3Key = `${this.config.s3.keyPrefix}/${datePrefix}/${imageId}.png`;
     const input = {
@@ -68,12 +69,5 @@ export default class ImageGeneratorService {
 
     const s3Uri = `s3://${s3Bucket}/${s3Key}`;
     return { s3Bucket, s3Key, s3Uri };
-  }
-
-  /** Gets an S3 date prefix in the form "YYYY-MM-DD" */
-  getS3DatePrefix() {
-    const isoDate = new Date().toISOString();
-    const parts = isoDate.split("T");
-    return parts[0];
   }
 }
