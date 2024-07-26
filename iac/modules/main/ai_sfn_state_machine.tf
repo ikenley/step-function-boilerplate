@@ -68,8 +68,41 @@ resource "aws_sfn_state_machine" "ai_sfn" {
           ]
         }
       },
-      "End": true,
-      "ResultPath": "$.GenerateImage"
+      "ResultPath": "$.GenerateImage",
+      "Next": "CreateTags"
+    },
+    "CreateTags": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${module.ai_image_lambda.lambda_function_arn}:$LATEST",
+        "Payload": {
+          "command": "CreateTags",
+          "imageId.$": "$.GetMetadata.ImageId",
+          "imageSBucket.$": "$.GenerateImage.s3Bucket",
+          "imageS3Key.$": "$.GenerateImage.s3Key"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2
+        }
+      ],
+      "ResultSelector": {
+        "S3BucketName.$": "$.Payload.s3BucketName",
+        "S3Key.$": "$.Payload.s3Key",
+        "S3Uri.$": "$.Payload.s3Uri"
+      },
+      "ResultPath": "$.CreateTags",
+      "End": true
     }
   }
 }
