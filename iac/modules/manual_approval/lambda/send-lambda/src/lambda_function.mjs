@@ -1,57 +1,51 @@
-console.log("Loading function");
+console.log(`Loading function`);
 import { SNS } from "@aws-sdk/client-sns";
 
 export const handler = (event, context, callback) => {
-  console.log("event= " + JSON.stringify(event));
-  console.log("context= " + JSON.stringify(context));
+  console.log(`event= ${JSON.stringify(event)}`);
+  console.log(`context= ${JSON.stringify(context)}`);
 
   const executionContext = event.ExecutionContext;
-  console.log("executionContext= " + executionContext);
+  console.log(`executionContext= ${executionContext}`);
 
   const executionName = executionContext.Execution.Name;
-  console.log("executionName= " + executionName);
+  console.log(`executionName= ${executionName}`);
 
   const statemachineName = executionContext.StateMachine.Name;
-  console.log("statemachineName= " + statemachineName);
+  console.log(`statemachineName= ${statemachineName}`);
 
   const taskToken = executionContext.Task.Token;
-  console.log("taskToken= " + taskToken);
+  console.log(`taskToken= ${taskToken}`);
 
   const apigwEndpint = event.APIGatewayEndpoint;
-  console.log("apigwEndpint = " + apigwEndpint);
+  console.log(`apigwEndpint = ${apigwEndpint}`);
 
-  const approveEndpoint =
-    apigwEndpint +
-    "/execution?action=approve&ex=" +
-    executionName +
-    "&sm=" +
-    statemachineName +
-    "&taskToken=" +
-    encodeURIComponent(taskToken);
-  console.log("approveEndpoint= " + approveEndpoint);
+  const approveEndpoint = `${apigwEndpint}/execution?action=approve&ex=${executionName}&sm=${statemachineName}&taskToken=${encodeURIComponent(
+    taskToken
+  )}`;
+  console.log(`approveEndpoint=${approveEndpoint}`);
 
-  const rejectEndpoint =
-    apigwEndpint +
-    "/execution?action=reject&ex=" +
-    executionName +
-    "&sm=" +
-    statemachineName +
-    "&taskToken=" +
-    encodeURIComponent(taskToken);
-  console.log("rejectEndpoint= " + rejectEndpoint);
+  const rejectEndpoint = `${apigwEndpint}/execution?action=reject&ex=${executionName}&sm=${statemachineName}&taskToken=${encodeURIComponent(
+    taskToken
+  )}`;
+  console.log(`rejectEndpoint= ${rejectEndpoint}`);
 
   const emailSnsTopic = event.EmailSnsTopic;
-  console.log("emailSnsTopic= " + emailSnsTopic);
+  console.log(`emailSnsTopic= ${emailSnsTopic}`);
 
-  var emailMessage = "Welcome! \n\n";
-  emailMessage +=
-    "This is an email requiring an approval for a step functions execution. \n\n";
-  emailMessage +=
-    'Please check the following information and click "Approve" link if you want to approve. \n\n';
-  emailMessage += "Execution Name -> " + executionName + "\n\n";
-  emailMessage += "Approve " + approveEndpoint + "\n\n";
-  emailMessage += "Reject " + rejectEndpoint + "\n\n";
-  emailMessage += "Thanks for using Step functions!";
+  const baseMessage =
+    event.Message ||
+    `Welcome! This is an email requiring an approval for a step functions execution.`;
+
+  const emailMessage = `${baseMessage}
+  
+Please check the following information and click "Approve" link if you want to approve.
+
+Execution Name -> ${executionName}
+
+Approve ${approveEndpoint}
+
+Reject ${rejectEndpoint}`;
 
   const sns = new SNS();
   var params = {
@@ -63,7 +57,7 @@ export const handler = (event, context, callback) => {
   sns
     .publish(params)
     .then(function (data) {
-      console.log("MessageID is " + data.MessageId);
+      console.log(`MessageID is ${data.MessageId}`);
       callback(null);
     })
     .catch(function (err) {

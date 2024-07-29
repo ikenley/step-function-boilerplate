@@ -102,6 +102,44 @@ resource "aws_sfn_state_machine" "ai_sfn" {
         "S3Uri.$": "$.Payload.s3Uri"
       },
       "ResultPath": "$.CreateTags",
+      "Next": "ManualApproveLambda"
+    },
+    "ManualApproveLambda": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "Parameters": {
+        "FunctionName": "${module.manual_approval.send_lambda_function_arn}",
+        "Payload": {
+          "ExecutionContext.$": "$$",
+          "APIGatewayEndpoint": "${module.manual_approval.api_gateway_invoke_url}",
+          "EmailSnsTopic": "${module.manual_approval.sns_email_topic_arn}",
+          "Message.$": "States.Format('An image is ready for review. Please see https://${local.aws_region}.console.aws.amazon.com/s3/object/${data.aws_ssm_parameter.data_lake_s3_bucket_name.value}?region=${local.aws_region}&bucketType=general&prefix={}.', $.GenerateImage.s3Key)"
+        }
+      },
+      "ResultPath": "$.ManualApproveLambda",
+      "Next": "ManualApproveChoiceState"
+    },
+    "ManualApproveChoiceState": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.ManualApproveLambda.action",
+          "StringEquals": "approve",
+          "Next": "ApprovedPassState"
+        },
+        {
+          "Variable": "$.ManualApproveLambda.action",
+          "StringEquals": "reject",
+          "Next": "RejectedPassState"
+        }
+      ]
+    },
+    "ApprovedPassState": {
+      "Type": "Pass",
+      "End": true
+    },
+    "RejectedPassState": {
+      "Type": "Pass",
       "End": true
     }
   }
@@ -192,7 +230,9 @@ resource "aws_iam_policy" "ai_sfn" {
         ],
         "Resource" : [
           "${module.ai_image_lambda.lambda_function_arn}",
-          "${module.ai_image_lambda.lambda_function_arn}:*"
+          "${module.ai_image_lambda.lambda_function_arn}:*",
+          "${module.manual_approval.send_lambda_function_arn}",
+          "${module.manual_approval.send_lambda_function_arn}:*"
         ]
       },
       {
