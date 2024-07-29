@@ -20,3 +20,7 @@ variable "is_prod" {
 variable "ses_email_addresses" {
   type = set(string)
 }
+
+variable "sns_topic_arns" {
+  type = list(string)
+}

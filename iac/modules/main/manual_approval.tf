@@ -16,6 +16,8 @@ module "manual_approval" {
 
   ses_email_addresses = var.ses_email_addresses
 
+  sns_topic_arns = [aws_sns_topic.ai_sfn.arn]
+
 }
 
 resource "aws_sfn_state_machine" "manual_approval_sfn" {

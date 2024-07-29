@@ -4,6 +4,7 @@
 
 locals {
   send_lambda_id = "${local.id}-send"
+  sns_topic_arns = toset(var.sns_topic_arns)
 }
 
 module "send_lambda" {
@@ -58,9 +59,10 @@ resource "aws_iam_policy" "send_lambda_main" {
         "Action" : [
           "SNS:Publish"
         ],
-        "Resource" : [
-          aws_sns_topic.sns_human_approval_email_topic.arn
-        ],
+        "Resource" : concat(
+          [aws_sns_topic.sns_human_approval_email_topic.arn],
+          [for arn in local.sns_topic_arns : arn]
+        ),
         "Effect" : "Allow"
       }
     ]

@@ -3,9 +3,11 @@
 #-------------------------------------------------------------------------------
 
 data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
 
 locals {
   account_id = data.aws_caller_identity.current.account_id
+  aws_region = data.aws_region.current.name
 
   id            = "${var.namespace}-${var.env}-step-demo"
   output_prefix = "/${var.namespace}/${var.env}/step-demo"
