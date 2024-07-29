@@ -112,7 +112,7 @@ resource "aws_sfn_state_machine" "ai_sfn" {
         "Payload": {
           "ExecutionContext.$": "$$",
           "APIGatewayEndpoint": "${module.manual_approval.api_gateway_invoke_url}",
-          "EmailSnsTopic": "${module.manual_approval.sns_email_topic_arn}",
+          "EmailSnsTopic": "${aws_sns_topic.ai_sfn.arn}",
           "Message.$": "States.Format('An image is ready for review. Please see https://${local.aws_region}.console.aws.amazon.com/s3/object/${data.aws_ssm_parameter.data_lake_s3_bucket_name.value}?region=${local.aws_region}&bucketType=general&prefix={}.', $.GenerateImage.s3Key)"
         }
       },
@@ -279,4 +279,19 @@ resource "aws_iam_policy" "ai_sfn" {
       }
     ]
   })
+}
+
+resource "aws_sns_topic" "ai_sfn" {
+  name = local.ai_sfn_id
+
+  kms_master_key_id = "alias/aws/sns"
+}
+
+# TODO make this a for each
+resource "aws_sns_topic_subscription" "ai_sfn" {
+  for_each = var.ses_email_addresses
+
+  topic_arn = aws_sns_topic.ai_sfn.arn
+  protocol  = "email"
+  endpoint  = each.key
 }
