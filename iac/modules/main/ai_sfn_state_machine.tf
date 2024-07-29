@@ -136,11 +136,21 @@ resource "aws_sfn_state_machine" "ai_sfn" {
     },
     "ApprovedPassState": {
       "Type": "Pass",
-      "End": true
+      "Next": "SnsPublish"
     },
     "RejectedPassState": {
       "Type": "Pass",
-      "End": true
+      "Next": "SnsPublish"
+    },
+    "SnsPublish": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "Message.$": "$",
+        "TopicArn": "${aws_sns_topic.ai_sfn.arn}"
+      },
+      "End": true,
+      "ResultPath": "$.SnsPublish"
     }
   }
 }
@@ -276,6 +286,14 @@ resource "aws_iam_policy" "ai_sfn" {
           "${aws_iam_role.ai_image_task_execution_role.arn}",
           "${aws_iam_role.ai_image_task_role.arn}"
         ]
+      },
+      {
+        "Sid" : "Sns",
+        "Effect" : "Allow",
+        "Action" : [
+          "SNS:Publish"
+        ],
+        "Resource" : [aws_sns_topic.ai_sfn.arn]
       }
     ]
   })
